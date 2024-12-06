@@ -1,17 +1,13 @@
 const express = require('express');
 const multer = require('multer');
-const { Storage } = require('@google-cloud/storage');
-const path = require('path');
 const { predict } = require('./controllers/predictController');
 
-// Inisialisasi Express dan Google Cloud Storage
+// Inisialisasi Express
 const app = express();
-const storage = new Storage();
-const bucket = storage.bucket('bucket-zilo'); // Nama bucket langsung ditulis di sini
 
 // Konfigurasi multer untuk upload file
 const upload = multer({
-  limits: { fileSize: 1000000 }, // Membatasi ukuran file maksimal 1MB
+  limits: { fileSize: 1000000 }, // Batas ukuran file 1MB
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -21,11 +17,10 @@ const upload = multer({
   },
 });
 
-// Endpoint POST untuk prediksi
+// Endpoint untuk prediksi
 app.post('/predict', upload.single('image'), predict);
 
-// Menjalankan server pada port 8080
-const port = process.env.PORT || 8080;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+// Mulai server pada port 8080
+app.listen(8080, () => {
+  console.log('Server running on port 8080');
 });

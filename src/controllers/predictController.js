@@ -2,8 +2,18 @@ const { predictCancer } = require('../services/mlPredictionService');
 const { Storage } = require('@google-cloud/storage');
 const uuid = require('uuid');
 const path = require('path');
+const firebaseAdmin = require('firebase-admin');
 
-// Menyebutkan nama bucket yang digunakan
+// Inisialisasi Firebase Admin SDK dengan kredensial
+if (!firebaseAdmin.apps.length) {
+  firebaseAdmin.initializeApp({
+    credential: firebaseAdmin.credential.applicationDefault(), // Gunakan kredensial yang ada di lingkungan aplikasi
+  });
+} else {
+  firebaseAdmin.app(); // Jika sudah ada, gunakan yang sudah ada
+}
+
+const db = firebaseAdmin.firestore(); // Akses Firestore
 const bucket = new Storage().bucket('bucket-zilo'); // Nama bucket langsung ditulis di sini
 
 // Fungsi untuk menangani request POST ke /predict
@@ -40,16 +50,21 @@ const predict = async (req, res) => {
       createdAt: new Date().toISOString(),
     };
 
+    // Menyimpan hasil prediksi ke Firestore
+    const predictionRef = db.collection('predictions').doc(predictionId);
+    await predictionRef.set(responseData);
+
+    // Mengirim respon ke pengguna
     return res.status(200).json({
       status: 'success',
       message: 'Model is predicted successfully',
       data: responseData,
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error while processing prediction:', error);
     return res.status(500).json({
       status: 'error',
-      message: 'Internal server error',
+      message: 'An error occurred while processing the prediction.',
     });
   }
 };
