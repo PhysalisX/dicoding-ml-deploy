@@ -20,6 +20,8 @@ const upload = multer({
 // Endpoint untuk prediksi
 app.post('/predict', upload.single('image'), predict);
 
+const port = process.env.PORT || 8080;
+
 // Mulai server pada port 8080
 app.listen(8080, () => {
   console.log('Server running on port 8080');
